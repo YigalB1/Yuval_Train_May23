@@ -1,18 +1,18 @@
 #include <Arduino.h>
+#include <headers.h>
 
-// put function declarations here:
-int myFunction(int, int);
+Train_ctrl my_train;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
-}
+  my_train.Red_led.led_pin = red_led_pin;
+  my_train.Yellow_led.led_pin = yellow_led_pin;
+  my_train.Green_led.led_pin = green_led_pin;
+  my_train.Red_led.init_led();
+  my_train.Yellow_led.init_led();
+  my_train.Green_led.init_led();
+  
+} // of SETUP() 
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
-}
+  my_train.test_leds();
+} // of LOOP()
