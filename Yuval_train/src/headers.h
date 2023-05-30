@@ -1,23 +1,5 @@
 
 
-#define red_led_pin 15
-#define yellow_led_pin 2
-#define green_led_pin 12
-
-void wait_millis(int _period_ms) {
-  unsigned long time_now = millis();
-  //Serial.print(" # "); 
-  //Serial.print(time_now); 
-  //Serial.print(" # "); 
-  //Serial.print(_period_ms); 
-  //Serial.print("#"); 
-
-  while(millis() < time_now+_period_ms);
-  //Serial.print(millis()); 
-  //Serial.println("#"); 
-} // of wait_millis
-
-
 
 
 class Led {
@@ -41,16 +23,42 @@ class Led {
     }
 }; // of class led
 
+class buzzer {
+    public:
+    int _buz_pin;
+
+    void init_buzzer() { 
+      pinMode(_buz_pin, OUTPUT);
+      //Serial.print("init_led: ");
+      //Serial.println(led_pin);
+    }
+
+    void set_buzzer_on() {
+        digitalWrite(_buz_pin,HIGH);
+    }
+    void set_buzzer_off() {
+        digitalWrite(_buz_pin,LOW);
+    }
+};
+
 
 class Train_ctrl {
   public:
     Led Green_led;
     Led Red_led;
     Led Yellow_led;
+    buzzer buzz;
+    motor_control motor;
+    // for the ESP32 PWM
+    const int freq = 5000;
+    const int ledChannel0 = 0;
+    const int ledChannel2 = 2;
+    const int resolution = 8;
 
 
 // -------------------------------------------------
 
+    
 
     void test_leds() {
       int blink_delay = 500;
