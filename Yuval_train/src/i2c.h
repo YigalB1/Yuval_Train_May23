@@ -1,53 +1,97 @@
-PCF8574 i2c_panel(0x39);
+#define I2C_Panel_addr 0x39 // the small pcb with the touch buttons and leds
+#define I2C_Main_addr 0x38 // the main pcb withthe ESP32 and motor drivers
+
+//#define m1_en 32
+#define m1_in1 1
+#define m1_in2 2
+//#define m2_en 27
+#define m2_in1 3
+#define m2_in2 4
+
+PCF8574 i2c_panel(0x39); // is 57 decimal
+PCF8574 i2c_main(0x38); // is 56 decimal
 
 
-class I2C_panel_ctrl {
+class I2C_ctrl {
     #define led_red 4
     #define led_yellow 5
     #define led_green 6
-    #define push_button1 2
-  
-  
+    #define push_button1 2 
 
-public:
+  public:
+      
+  bool i2c_init() {
+    Serial.print("in i2c_init()   ");
+    // check OCF8574 of Yuval_Panel 
+    bool i2c_panel_ret;
+    bool i2c_main_ret;
+
+    i2c_panel_ret = check_i2c_alive(I2C_Panel_addr);
+    if (!i2c_panel_ret) {
+      // device is dead
+      Serial.print("Adress: ");
+      Serial.print(I2C_Panel_addr);
+      Serial.println("    failed to init");
+      return(false);
+    } // of if()
+
+    i2c_main_ret = check_i2c_alive(I2C_Main_addr);
+    if (!i2c_main_ret) {
+      // device is dead
+      Serial.print("Adress: ");
+      Serial.print(I2C_Main_addr);
+      Serial.println("    failed to init");
+      return(false);
+    } // of if()
     
-    void i2c_init() {
-        i2c_panel.pinMode(led_red, OUTPUT);
-        i2c_panel.pinMode(led_yellow, OUTPUT);
-        i2c_panel.pinMode(led_green, OUTPUT);
-        i2c_panel.pinMode(push_button1, INPUT);
-        if (i2c_panel.begin()) 
-            Serial.println("OK");
-        else
-            Serial.println("KO");
+    // init the pins of the PCF8574
+      i2c_panel.pinMode(led_red, OUTPUT);
+      i2c_panel.pinMode(led_yellow, OUTPUT);
+      i2c_panel.pinMode(led_green, OUTPUT);
+      i2c_panel.pinMode(push_button1, INPUT);
 
-    } // of i2c_init
+      i2c_main.pinMode(m1_in1,OUTPUT);
+      i2c_main.pinMode(m1_in2,OUTPUT);
+      i2c_main.pinMode(m2_in1,OUTPUT);
+      i2c_main.pinMode(m2_in2,OUTPUT);
 
-    void write_i2c(int _pin, int _val) {
-      i2c_panel.digitalWrite(_pin, _val );
-    } // of write_i2c
+    return(true);
+  } // of i2c_init
+
+
+
+bool check_i2c_alive(int _addr) {
+    int ret_val;
+
+    Wire.beginTransmission(I2C_Panel_addr);
+    ret_val = Wire.endTransmission();
+    Serial.print("ret_val: ");
+    Serial.println(ret_val);
+
+    if (ret_val!=0) {
+      // failed to communicate with the i2c device
+      Serial.println("ERROR: Panel PCF8574 is Dead");
+      return(false);
+      } // of if()
+    else {
+      Serial.print("Panel PCF8574 is OK at adress: ");
+      Serial.println(I2C_Panel_addr);
+      
+      } // of else()
+    return(true);
+  } // of check_i2c_alive
+
+  
+
+  void write_i2c(int _pin, int _val) {
+    i2c_panel.digitalWrite(_pin, _val );
+  } // of write_i2c
 
     int read_i2c(int _pin) {
         return(i2c_panel.digitalRead(_pin));
     } // of read_i2c
 
-
-
-
-    /*
-      if (!PCF_39.begin())
-  {
-    Serial.println("could not initialize...");
-  }
-  if (!PCF_39.isConnected())
-  {
-    Serial.println("=> not connected");
-  }
-  else
-  {
-    Serial.println("=> connected!!");
-  }
-}*/
+  
 
 void test_panel_leds() {
     write_i2c(led_red,LOW);
