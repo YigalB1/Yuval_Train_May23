@@ -3,10 +3,7 @@
 #include <OneWire.h> // for the temp sensor (one wire bus)
 #include <DallasTemperature.h>
 
-void wait_millis(int _period_ms) {
-  unsigned long time_now = millis();
-  while(millis() < time_now+_period_ms);
-} // of wait_millis
+
 
 // ***********************************************************
 
@@ -22,14 +19,7 @@ void wait_millis(int _period_ms) {
     int _resolution;;
     int _led_channel;
 
-/* 
-    void wait_millis(int _period_ms) {
-        unsigned long time_now = millis();
-        while(millis() < time_now+_period_ms);
-    } // of wait_millis
-*/
     //buzzer _buzzer;
-
 
     void init(int __en,int __in_1, int __in_2, int __freq, int __res, int __chan) {
         _en = __en;
@@ -41,33 +31,31 @@ void wait_millis(int _period_ms) {
 
         Serial.print("..in Motor init: en, in_1, in_2   ");
         Serial.print(__en);
+        Serial.print(" ");
         Serial.print( __in_1);
-        Serial.println(__in_2);
-        
+        Serial.print(" ");
+        Serial.print(__in_2);  
+        Serial.print(" ");
+        Serial.print(_freq);  
+        Serial.print(" ");
+        Serial.print(_resolution);  
+        Serial.print(" ");
+        Serial.println(_led_channel);       
 
         //pinMode(__en, OUTPUT);
+        //i2c_main.pinMode(__in_1,OUTPUT); // was in pcb_1
+        //i2c_main.pinMode(__in_2,OUTPUT);
         pinMode(__in_1, OUTPUT);
         pinMode(__in_2, OUTPUT);
 
 
         ledcSetup(_led_channel, _freq,_resolution);
         ledcAttachPin(_en, _led_channel);
-        Serial.print(".._led_channel: ");
-        Serial.println(_led_channel);
-
-        Serial.print(".._freq: ");
-        Serial.println(_freq);
-
-        Serial.print(".._en: ");
-        Serial.println(_en);
-        
-        Serial.print(".._resolution: ");
-        Serial.print(_resolution);
 
     } // of init()
 
     void motor_test() {
-        Serial.print("..motor test");
+        //Serial.print("..motor test fwd");
         go_fwd(200);
         wait_millis(3000);
         stop();
@@ -78,21 +66,26 @@ void wait_millis(int _period_ms) {
         wait_millis(1000);
     } // of motor_test()
 
-
-
-
-    
-
 void stop() {
+   // i2c_main.digitalWrite(_in_1, LOW);
+   // i2c_main.digitalWrite(_in_2, LOW);
     digitalWrite(_in_1, LOW); // 
     digitalWrite(_in_2, LOW); //
     ledcWrite(_led_channel, 0); 
   } // of stop()
 
   void go_fwd(int _speed) {
-    Serial.println("in go_fwd");
-    Serial.println(_in_1);
-    Serial.println(_in_2);
+    /*
+    Serial.print("in go_fwd ");
+    Serial.print(_in_1);
+    Serial.print(" ");
+    Serial.print(_in_2);
+    Serial.print(" ");
+    Serial.print(_led_channel);
+    Serial.print(" ");
+    Serial.println(_speed);
+*/
+
     digitalWrite(_in_1, LOW); // 
     digitalWrite(_in_2, HIGH); // 
     ledcWrite(_led_channel, _speed);    

@@ -1,12 +1,7 @@
 #define I2C_Panel_addr 0x39 // the small pcb with the touch buttons and leds
 #define I2C_Main_addr 0x38 // the main pcb withthe ESP32 and motor drivers
 
-//#define m1_en 32
-#define m1_in1 1
-#define m1_in2 2
-//#define m2_en 27
-#define m2_in1 3
-#define m2_in2 4
+
 
 PCF8574 i2c_panel(0x39); // is 57 decimal
 PCF8574 i2c_main(0x38); // is 56 decimal
@@ -50,10 +45,10 @@ class I2C_ctrl {
       i2c_panel.pinMode(led_green, OUTPUT);
       i2c_panel.pinMode(push_button1, INPUT);
 
-      i2c_main.pinMode(m1_in1,OUTPUT);
-      i2c_main.pinMode(m1_in2,OUTPUT);
-      i2c_main.pinMode(m2_in1,OUTPUT);
-      i2c_main.pinMode(m2_in2,OUTPUT);
+      //i2c_main.pinMode(m1_in1,OUTPUT); with change from PCB1 to 2
+      //i2c_main.pinMode(m1_in2,OUTPUT);
+      //i2c_main.pinMode(m2_in1,OUTPUT);
+      //i2c_main.pinMode(m2_in2,OUTPUT);
 
     return(true);
   } // of i2c_init

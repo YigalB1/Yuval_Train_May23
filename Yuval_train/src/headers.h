@@ -1,7 +1,3 @@
-
-
-
-
 class Led {
     public:
     int led_pin;
@@ -41,6 +37,16 @@ class buzzer {
     }
 };
 
+class push_button {
+  int button_pin;
+  int pressed_num = 0 ; // mostly for debug
+
+  void init() {
+    pinMode(button_pin, INPUT_PULLUP);
+  } // of init()
+
+}; // of push_button class
+
 
 class Train_ctrl {
   public:
@@ -49,14 +55,19 @@ class Train_ctrl {
     Led Yellow_led;
     buzzer buzz;
     motor_control motor;
+
+    push_button start_button;
+    push_button stop_button;
+    push_button cng_button;
+
+
     // for the ESP32 PWM
     const int freq = 5000;
     const int ledChannel0 = 0;
     const int ledChannel2 = 2;
     const int resolution = 8;
 
-
-// -------------------------------------------------
+    bool dir_left = true;
 
     
 
