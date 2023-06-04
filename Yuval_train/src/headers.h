@@ -1,21 +1,20 @@
+#define RED     1 
+#define YELLOW  2
+#define GREEN   3
+
+
 class Led {
     public:
     int led_pin;
     
     void init_led() { 
       pinMode(led_pin, OUTPUT);
-      //Serial.print("init_led: ");
-      //Serial.println(led_pin);
     }
     void set_led_on() {
         digitalWrite(led_pin,HIGH);
-        //Serial.print("Led ON : ");
-        //Serial.println(led_pin);
     }
     void set_led_off() {
         digitalWrite(led_pin,LOW);
-        //Serial.print("Led OFF : ");
-        //Serial.println(led_pin);
     }
 }; // of class led
 
@@ -38,8 +37,10 @@ class buzzer {
 };
 
 class push_button {
+  public:
   int button_pin;
   int pressed_num = 0 ; // mostly for debug
+  //bool pressed = false; need to be volotile because of interrupts, in main
 
   void init() {
     pinMode(button_pin, INPUT_PULLUP);
@@ -50,9 +51,10 @@ class push_button {
 
 class Train_ctrl {
   public:
-    Led Green_led;
+    
     Led Red_led;
     Led Yellow_led;
+    Led Green_led;
     buzzer buzz;
     motor_control motor;
 
@@ -68,6 +70,26 @@ class Train_ctrl {
     const int resolution = 8;
 
     bool dir_left = true;
+
+    void led_ctrl(int _led) {
+      if (_led ==  RED) {
+        Red_led.set_led_on();
+        Yellow_led.set_led_off();
+        Green_led.set_led_off();
+      } // of if()
+      if (_led ==  YELLOW) {
+        Red_led.set_led_off();
+        Yellow_led.set_led_on();
+        Green_led.set_led_off();
+      } // of if()
+      if (_led ==  GREEN) {
+        Red_led.set_led_off();
+        Yellow_led.set_led_off();
+        Green_led.set_led_on();
+      } // of if()
+
+
+    } // of led_ctrl ()
 
     
 

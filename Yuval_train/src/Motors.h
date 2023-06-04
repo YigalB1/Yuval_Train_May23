@@ -3,6 +3,12 @@
 #include <OneWire.h> // for the temp sensor (one wire bus)
 #include <DallasTemperature.h>
 
+// Motors constants
+#define START_SPEED 200
+#define STOP 0
+#define GO  1
+#define GO_FWD 1
+#define GO_BCK 2
 
 
 // ***********************************************************
@@ -19,6 +25,9 @@
     int _resolution;;
     int _led_channel;
 
+    int status  = STOP;     // 0: stopping  1: Going
+    int dir     = GO_FWD; // 1: Going FWD 2: going BCK
+
     //buzzer _buzzer;
 
     void init(int __en,int __in_1, int __in_2, int __freq, int __res, int __chan) {
@@ -28,6 +37,8 @@
         _freq = __freq;
         _resolution = __res;
         _led_channel = __chan;
+        status = STOP;
+        dir = GO_FWD;
 
         Serial.print("..in Motor init: en, in_1, in_2   ");
         Serial.print(__en);
@@ -75,17 +86,6 @@ void stop() {
   } // of stop()
 
   void go_fwd(int _speed) {
-    /*
-    Serial.print("in go_fwd ");
-    Serial.print(_in_1);
-    Serial.print(" ");
-    Serial.print(_in_2);
-    Serial.print(" ");
-    Serial.print(_led_channel);
-    Serial.print(" ");
-    Serial.println(_speed);
-*/
-
     digitalWrite(_in_1, LOW); // 
     digitalWrite(_in_2, HIGH); // 
     ledcWrite(_led_channel, _speed);    
