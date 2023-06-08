@@ -21,10 +21,8 @@
 #define button_start_pin   35
 #define button_stop_pin    36
 #define button_cng_dir_pin 34
+#define speed_potsmtr_pin       33
 
-
-
-//#define temperature_pin 36
 //#define I2C_interrupt_pin 13
 
 const int freq = 5000;
@@ -34,6 +32,9 @@ const int ledChannel0 = 0;
 
 Train_ctrl my_train;
 I2C_ctrl my_i2c_bus;
+int train_speed;
+
+TaskHandle_t Task1; // create a task to run on core 0 - the analog read
 
 //uint8_t button_val;
 volatile bool start_pressed = false;
@@ -58,10 +59,39 @@ void IRAM_ATTR Button_cng_isr() {
 } // end of ISR
 
 
+void Task1code( void * parameter) {
+  int val;
+  for(;;) {
+    val = my_train.manual_speed_knob.read_speed();
+    my_train.speed_knob_val = val ; // keep reading speed from the knob
+    /*
+    Serial.print("Core:  ");
+    Serial.print(xPortGetCoreID());
+    Serial.print("    ****   analog read:  ");
+    Serial.print(val);
+    Serial.print("      ..   ");
+    val = analogRead(speed_potsmtr_pin);
+    Serial.print(val);
+    Serial.print("    speed:    ");
+    train_speed = analogRead(speed_potsmtr_pin);
+    Serial.println(train_speed);
+    Serial.print("    /  ");
+    Serial.println(my_train.speed_knob_val);
+    */
+    
+  } // of for() loop
+} // of Task1code
+
+
+
+
+
+
 void setup() {
   Serial.begin(9600);
   Wire.begin(); // init I2C bus as a master 
   Serial.println("..starting SETUP....");
+  Serial.println(xPortGetCoreID());
       
   my_train.Red_led.led_pin = red_led_pin;
   my_train.Yellow_led.led_pin = yellow_led_pin;
@@ -70,15 +100,16 @@ void setup() {
   my_train.Yellow_led.init_led();
   my_train.Green_led.init_led();
 
+  my_train.manual_speed_knob.potsmtr_pin = speed_potsmtr_pin;
+
   my_train.start_button.button_pin = button_start_pin;
   my_train.stop_button.button_pin = button_stop_pin;
   my_train.cng_button.button_pin = button_cng_dir_pin;
   my_train.start_button.init();
   my_train.stop_button.init();
   my_train.cng_button.init();
-  attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
-  attachInterrupt(digitalPinToInterrupt(button_stop_pin), Button_stop_isr, RISING);
-  attachInterrupt(digitalPinToInterrupt(button_cng_dir_pin), Button_cng_isr, RISING);
+
+  
 
 
   //my_train.test_leds();
@@ -89,7 +120,7 @@ void setup() {
   my_train.Yellow_led.set_led_on();
 
   //Serial.print(millis());
-  wait_millis(5000);
+  wait_millis(1000);
   //Serial.print("  ");
   //Serial.println(millis());
   //delay(4000);
@@ -110,15 +141,71 @@ else {
    Serial.println("I2C 0x39 is missing");
 }
 */  
+
+// the task to be run on core 0 - the analog read
+xTaskCreatePinnedToCore(
+      Task1code, /* Function to implement the task */
+      "Task1", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &Task1,  /* Task handle. */
+      0); /* Core where the task should run */
+
+
+
+
+
    
   my_train.led_ctrl(RED); // train is at stop at start
-  wait_millis(3000); // for debug stage ONLY
+  wait_millis(1000); // for debug stage ONLY
+
+  attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
+  attachInterrupt(digitalPinToInterrupt(button_stop_pin), Button_stop_isr, RISING);
+  attachInterrupt(digitalPinToInterrupt(button_cng_dir_pin), Button_cng_isr, RISING);
+
   Serial.println("..End of SETUP");
 } // of SETUP()  ******************************************
 
 
+void handle_buttons(); // the function is declared at the bottom after the loop
+
 void loop() {
+  //return;
+  
+  
   Serial.println("   ");
+  Serial.print("  core:  ");
+  Serial.print(xPortGetCoreID());
+  
+  //my_train.speed_knob_val = my_train.manual_speed_knob.read_speed(); // keep reading speed from the knob
+  //my_train.update_speed();
+  Serial.print("   my train speed val:  ");
+  Serial.print(my_train.speed_knob_val);
+  Serial.print("  my train pin num:  ");
+  Serial.print(my_train.manual_speed_knob.potsmtr_pin);
+  Serial.print("     ");
+  //return;
+  
+
+  if (start_pressed || stop_pressed || cng_pressed) {
+    // Push buttpn event occured
+    Serial.print(" Push Button event occured ");
+    Serial.print(start_pressed);
+    Serial.print("   ");
+    Serial.print(stop_pressed);
+    Serial.print("   ");
+    Serial.print(cng_pressed);
+    Serial.print("   ");
+    handle_buttons();
+    
+  }
+
+  // make sure train runs on speed according to the knob
+
+
+
+  /*
   Serial.print(start_pressed);
   Serial.print("   ");
   Serial.print(stop_pressed);
@@ -135,56 +222,55 @@ void loop() {
   Serial.print("   dir: ");
   Serial.print(my_train.motor.dir);
   Serial.print("   ");
+  */
 
-  if (start_pressed) {
-    Serial.print("   in START_pressed   ");
+wait_millis(50);      
+} // of LOOP()   ******************************************
 
-    start_pressed = false;
-    // if we are already in movement, do nothing
-    if (my_train.motor.status==GO) {
-      Serial.print("   ");
-      Serial.print("in START, GO");
-      wait_millis(100);
-      attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
-      return;
-    } // of if()
 
-    
+
+
+
+void handle_buttons() {
+
+
+    if (start_pressed) {
+      Serial.print("   in START_pressed   ");
+
+      start_pressed = false;
+      // if we are already in movement, do nothing
+      if (my_train.motor.status==GO) {
+        Serial.print("   ");
+        //Serial.print("in START, GO");
+        wait_millis(100);
+        attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
+        return;
+      } // of inner if()
+
       Serial.print("in START, was no-go");
-    // At this stage, we got a valid go command
-    my_train.start_button.pressed_num +=1;
-    my_train.motor.status = GO;
+      // At this stage, we got a valid go command
+      my_train.start_button.pressed_num +=1;
+      my_train.motor.status = GO;
     
-    // go, depends on the direction
-    if (my_train.motor.dir==GO_FWD) {
-      my_train.motor.go_fwd(START_SPEED);
-      my_train.led_ctrl(GREEN);
-
-    } // of if()
-    else {
-      my_train.motor.go_back(START_SPEED);
-      my_train.led_ctrl(YELLOW);
-
-    } // of else()
+      // go, depends on the direction
+      if (my_train.motor.dir==GO_FWD) {
+        my_train.motor.go_fwd(my_train.speed_knob_val);
+        my_train.led_ctrl(GREEN);
+      } // of if()
+      else {
+        my_train.motor.go_back(my_train.speed_knob_val);
+        my_train.led_ctrl(YELLOW);
+      } // of else()
     wait_millis(100);
     attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
-    
-
-/*
-    //detachInterrupt(button_start_pin);
-    num_start_pressed+=1;     
-    start_pressed = false;
-    wait_millis(100);
-    attachInterrupt(digitalPinToInterrupt(button_start_pin), Button_start_isr, RISING);
-*/
-  }
+  } // of if() start_pressed
   
   
   if (stop_pressed) {
     // no need to check if we are already in stop mode,,,, just stopping again..
     // TBD: moderated stop
     Serial.print("    in STOP_PRESSED    ");
-    stop_pressed=false;
+    stop_pressed = false;
     my_train.stop_button.pressed_num +=1;
         
     my_train.motor.stop();
@@ -192,24 +278,11 @@ void loop() {
     my_train.led_ctrl(RED);
     wait_millis(100);
     attachInterrupt(digitalPinToInterrupt(button_stop_pin), Button_stop_isr, RISING);   
-    
-    /*
-    //detachInterrupt(button_end_pin);
-    num_end_pressed+=1;     
-    end_pressed = false;
-    wait_millis(100);
-    attachInterrupt(digitalPinToInterrupt(button_stop_pin), Button_stop_isr, RISING);
-    */
-  }
+  } // of if() stopped pressed
 
   if (cng_pressed) {
-    Serial.print("  in cng_pressed()  ");
-  
     cng_pressed = false;
     my_train.cng_button.pressed_num +=1;
-    Serial.print("  pressed num:  ");
-    Serial.print(my_train.cng_button.pressed_num);
-    
     
     if (my_train.motor.status == STOP) {
       // We are in stop mode
@@ -224,31 +297,25 @@ void loop() {
     else {
       // we are already on the go
       // Need to stop and change direction
-      Serial.print("  in ELSE ");
+      //Serial.print("  in ELSE ");
       my_train.motor.stop();
       my_train.led_ctrl(RED);
       wait_millis(1000);
       if (my_train.motor.dir==GO_FWD) {
-        Serial.print("  in IF 1  ");
         my_train.motor.dir = GO_BCK;
-        my_train.motor.go_back(START_SPEED);
+        my_train.motor.go_back(my_train.speed_knob_val);
         my_train.led_ctrl(YELLOW);
       } // of IF()
       else {
-        Serial.print("  in ELSE  of IF 1 ");
         my_train.motor.dir = GO_FWD;
-        my_train.motor.go_fwd(START_SPEED);
+        my_train.motor.go_fwd(my_train.speed_knob_val);
         my_train.led_ctrl(GREEN);
       } // of ELSE()
       wait_millis(100);
-
-
     } // of else()
 
     wait_millis(300); // larger delay to debounce - delay between changes
     attachInterrupt(digitalPinToInterrupt(button_cng_dir_pin), Button_cng_isr, RISING);   
-  }
+  } // of if() cng_pressed
 
-  
-      
-} // of LOOP()   ******************************************
+} // of handle_buttons

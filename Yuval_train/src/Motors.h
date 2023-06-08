@@ -4,7 +4,7 @@
 #include <DallasTemperature.h>
 
 // Motors constants
-#define START_SPEED 200
+//#define START_SPEED 200
 #define STOP 0
 #define GO  1
 #define GO_FWD 1
@@ -40,25 +40,8 @@
         status = STOP;
         dir = GO_FWD;
 
-        Serial.print("..in Motor init: en, in_1, in_2   ");
-        Serial.print(__en);
-        Serial.print(" ");
-        Serial.print( __in_1);
-        Serial.print(" ");
-        Serial.print(__in_2);  
-        Serial.print(" ");
-        Serial.print(_freq);  
-        Serial.print(" ");
-        Serial.print(_resolution);  
-        Serial.print(" ");
-        Serial.println(_led_channel);       
-
-        //pinMode(__en, OUTPUT);
-        //i2c_main.pinMode(__in_1,OUTPUT); // was in pcb_1
-        //i2c_main.pinMode(__in_2,OUTPUT);
         pinMode(__in_1, OUTPUT);
         pinMode(__in_2, OUTPUT);
-
 
         ledcSetup(_led_channel, _freq,_resolution);
         ledcAttachPin(_en, _led_channel);

@@ -2,6 +2,23 @@
 #define YELLOW  2
 #define GREEN   3
 
+#define min_speed 0
+#define max_speed 255
+
+
+class speed_knob {
+  public: 
+  int potsmtr_pin;
+  int speed_knob_val = 0;
+  
+  int read_speed() {
+    
+    int speed_val;
+    speed_knob_val = analogRead(potsmtr_pin);
+    speed_val = map(speed_knob_val, 0, 4095, min_speed, max_speed);
+    return speed_val;
+  } // of read_speed()
+} ;  // of speed_knob class
 
 class Led {
     public:
@@ -61,7 +78,8 @@ class Train_ctrl {
     push_button start_button;
     push_button stop_button;
     push_button cng_button;
-
+    speed_knob  manual_speed_knob;
+    int speed_knob_val = 0; // holds the value of theg speed according to the knob
 
     // for the ESP32 PWM
     const int freq = 5000;
@@ -70,6 +88,17 @@ class Train_ctrl {
     const int resolution = 8;
 
     bool dir_left = true;
+
+    void update_speed() {
+      // read every time in loop() to keep the speed updated
+      if (motor.dir==GO_FWD) {
+        motor.go_fwd(speed_knob_val);
+      } // of if()
+      if (motor.dir==GO_BCK) {
+        motor.go_fwd(speed_knob_val);
+      } // of if()
+
+    } // of update_speed
 
     void led_ctrl(int _led) {
       if (_led ==  RED) {
@@ -108,5 +137,13 @@ class Train_ctrl {
         wait_millis(blink_delay);
       } // of for loop
     } // of test_leds()
+
+
+
+
+
+
+
+    
 
 }; // of Train_ctrl Class
