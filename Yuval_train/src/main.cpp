@@ -2,7 +2,7 @@
 #include <Wire.h>  // for I2c
 #include "PCF8574.h"
 #include <generalFunc.h>
-#include <i2c.h>
+//#include <i2c.h>
 #include <Motors.h>
 #include <headers.h>
 
@@ -19,19 +19,19 @@
 #define m1_in1_pin 23
 #define m1_in2_pin 4
 #define button_start_pin   35
-#define button_stop_pin    36
+#define button_stop_pin   17 // was 36
 #define button_cng_dir_pin 34
-#define speed_potsmtr_pin       33
+#define speed_potsmtr_pin   12 //  26  //39 // was  33
 
 //#define I2C_interrupt_pin 13
 
 const int freq = 5000;
 const int resolution = 8;
-const int ledChannel0 = 0;
+const int ledChannel0 = 0; // was 0
 
 
 Train_ctrl my_train;
-I2C_ctrl my_i2c_bus;
+//I2C_ctrl my_i2c_bus;
 int train_speed;
 
 TaskHandle_t Task1; // create a task to run on core 0 - the analog read
@@ -62,11 +62,16 @@ void IRAM_ATTR Button_cng_isr() {
 void Task1code( void * parameter) {
   int val;
   for(;;) {
+    //val = analogRead(speed_potsmtr_pin);
     val = my_train.manual_speed_knob.read_speed();
     my_train.speed_knob_val = val ; // keep reading speed from the knob
+    
+    Serial.println(" ");
+    Serial.print("pin:  ");
+    Serial.print(speed_potsmtr_pin);
+    Serial.print("   Core:  ");
+    Serial.println(xPortGetCoreID());
     /*
-    Serial.print("Core:  ");
-    Serial.print(xPortGetCoreID());
     Serial.print("    ****   analog read:  ");
     Serial.print(val);
     Serial.print("      ..   ");
@@ -78,7 +83,7 @@ void Task1code( void * parameter) {
     Serial.print("    /  ");
     Serial.println(my_train.speed_knob_val);
     */
-    
+    wait_millis(100);
   } // of for() loop
 } // of Task1code
 
