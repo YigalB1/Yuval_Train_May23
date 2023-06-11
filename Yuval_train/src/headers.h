@@ -15,7 +15,13 @@ class speed_knob {
     
     int speed_val;
     speed_knob_val = analogRead(potsmtr_pin);
+    //Serial.print(" speed_knob_val:  ");
+    //Serial.print(speed_knob_val);
+
     speed_val = map(speed_knob_val, 0, 4095, min_speed, max_speed);
+    //Serial.print(" speed_val:  ");
+    //Serial.println(speed_val);
+
     return speed_val;
   } // of read_speed()
 } ;  // of speed_knob class
@@ -79,7 +85,7 @@ class Train_ctrl {
     push_button stop_button;
     push_button cng_button;
     speed_knob  manual_speed_knob;
-    int speed_knob_val = 0; // holds the value of theg speed according to the knob
+    int train_speed = 0; // holds the value of theg speed according to the knob
 
     // for the ESP32 PWM
     const int freq = 5000;
@@ -92,10 +98,10 @@ class Train_ctrl {
     void update_speed() {
       // read every time in loop() to keep the speed updated
       if (motor.dir==GO_FWD) {
-        motor.go_fwd(speed_knob_val);
+        motor.go_fwd(train_speed);
       } // of if()
       if (motor.dir==GO_BCK) {
-        motor.go_fwd(speed_knob_val);
+        motor.go_fwd(train_speed);
       } // of if()
 
     } // of update_speed
@@ -116,11 +122,7 @@ class Train_ctrl {
         Yellow_led.set_led_off();
         Green_led.set_led_on();
       } // of if()
-
-
     } // of led_ctrl ()
-
-    
 
     void test_leds() {
       int blink_delay = 500;
@@ -136,14 +138,5 @@ class Train_ctrl {
         
         wait_millis(blink_delay);
       } // of for loop
-    } // of test_leds()
-
-
-
-
-
-
-
-    
-
+    } // of test_leds()  
 }; // of Train_ctrl Class
