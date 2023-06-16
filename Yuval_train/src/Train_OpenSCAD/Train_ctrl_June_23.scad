@@ -5,7 +5,7 @@ use <screw_holder.scad>
 
 box_x = 90;
 box_y = 90;
-box_h = 40; // working currently 90
+box_h = 40; // working currently 40
 box_width = 2;
 corner_x = 8;
 pcb_vec = [-34,-38,-20];
@@ -25,9 +25,9 @@ header1 = "Train Control";
 
 
 
-print_box(_param=1);
-text_vec=[-30,0,0];
-//print_cover(_t=header1,_t_vec=text_vec);
+print_box(_param=2);
+text_vec=[-30,-10,0];
+
 
 module print_box(_param) {
     if (_param==1) {
@@ -37,10 +37,14 @@ module print_box(_param) {
                 // the pillars for the pcb
                 translate(pcb_vec) train_ctrl_pcb(); 
             } // of union()
-            #translate(pcb_vec) mk_holes();
+            translate(pcb_vec) mk_holes();
             //translate([-50,-70,10]) #cube([150,150,30]);
-    } // of difference()
+        } // of difference()
     } // of param=1
+    
+    else if(_param==2) {
+        print_cover(_t=header1,_t_vec=text_vec);
+    } // pf param=2
 
     else if(_param==3) {
         difference() {
@@ -124,7 +128,7 @@ module corner(ext_pins="false") {
     
     difference() {
         cube ([corner_x,corner_x,box_h], center=true);  
-        translate([0,0,box_h/2-cone_h/2-7]) #pin_negative(size=2);
+        translate([0,0,box_h/2-cone_h/2-7]) pin_negative(size=2);
         //translate([0,0,box_h/2-cone_h/2-2]) cone();
     } // of difference()
     
@@ -158,33 +162,103 @@ module box(ext_pins="false") {
 
 
 module cover_to_print(_text="texttt",_t_vec) {
-    led_cover_d=11.8;// was 12.5;
+    led_cover_d=5+0.6;// was 11.8, before  12.5;
+    sw_d = 6.8+0.6;
     cover_h = 2;
-    
-
     header=_text;
-    
     font = "Liberation Sans";
+    //font = "Liberation Mono";
+    //font = "Liberation Serif";
+    txt1 = "";
+    txt2 = "change";
+    txt3 = "";
+    font_big = 9;
+    font_small = 5;
+    
+    led_h1 = 15;
+    led_h2 = -5-3;
     
     
     difference() {
         union() {
             cube ([box_x,box_y,cover_h], center=true);  
             
-            translate(_t_vec) translate([-10,-16,0])
+            translate(_t_vec) translate([-4,-20,0])
                 rotate([180,0,0])
                     color("red")
                         linear_extrude(height = 2)                         
-                            text(text = header, font = font, size = 10);
+                            text(text = header, font = font, size = font_big);
+            
+            // start
+            translate([-37-2,7,0]) rotate([180,0,0]) color("red")
+                linear_extrude(height = 2)                         
+                    text(text = "START", font = font, size = font_small);
+            /*
+            // change
+            translate([-37+16,7,0]) rotate([180,0,0]) color("red")
+                linear_extrude(height = 2)                         
+                    text(text = txt2, font = font, size = font_small);
+            */
+            // stop
+            translate([-37+46+3,7,0]) rotate([180,0,0]) color("red")
+                linear_extrude(height = 2)                         
+                    text(text = "STOP", font = font, size = font_small);
+           // Speed
+            translate([-37+30-3,29,0]) rotate([180,0,0]) color("red")
+                linear_extrude(height = 2)                         
+                    text(text = "SPEED", font = font, size = font_small);
+           // arrows
+           color("green") translate([-15-1,7-5,-1.5+1]) linear_extrude(height = 3, center = true, convexity = 10) {
+               translate([1,0,0]) unicode_character(left_arrow, 15, font);
+               translate([0,0,0]) unicode_character(right_arrow, 15, font);
+           } // of translate()
+           
+           /*
+           color("green") translate([-30,-10,-10]) rotate([0,0,0])
+            unicode_character(left_arrow, 15, font);
+           color("green") translate([-30,-10,-10]) rotate([0,0,0])
+            unicode_character(right_arrow, 15, font);
+             */       
+                    
+                    
             
             //text("OpenSCAD");
         } // of union
-        // cut holes for LEDs       
-        translate([20,15,-5]) cylinder(d=led_cover_d,h=10);
-        translate([-20,15,-5]) cylinder(d=led_cover_d,h=10);
+        // cut holes for push buttons
+        translate([-30,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60); // start
+        translate([-5,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60); // cng       
+        translate([20,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60);  // stop
         
+        // leds
+        translate([-30,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // start
+        translate([-5,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // cng      
+        translate([ 20,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // stop
         
-    } // of difference()
+        // potentiometer
+        translate([ 25-24, 35,-5]) cylinder(d=sw_d,h=10,$fn=60);              
+        } // of difference()
 } // of cover_to_print()
 
 
+/* This code draws an arrow. */
+
+/* This code draws a Unicode character. */
+
+
+// Define the character.
+left_arrow = "\u2192"; // This is the Unicode character for a right arrow.
+right_arrow = "\u2190"; // This is the Unicode character for a right arrow.
+
+
+// Define the size.
+size = 50;
+
+// Define the font.
+font1 = "DejaVuSans";
+
+// Draw the character.
+//unicode_character(c2, size, font);
+
+module unicode_character(character, size, font) {
+  text(character, size = size, font = font);
+}
