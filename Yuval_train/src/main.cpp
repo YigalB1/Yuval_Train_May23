@@ -16,7 +16,7 @@
 #define m1_in1_pin 23
 #define m1_in2_pin 4
 #define button_start_pin   35
-#define button_stop_pin   17 // was 36
+#define button_stop_pin   36 // was 36, then 17 
 #define button_cng_dir_pin 34
 #define speed_potsmtr_pin   33 //  26  //39 // was  33
 
@@ -56,7 +56,7 @@ void IRAM_ATTR Button_cng_isr() {
 
 
 void Task1code( void * parameter) {
-  //int val;
+  //run =s on a seprated core
   int start_val, stop_val,cng_val;
 
   for(;;) {
@@ -72,7 +72,6 @@ void Task1code( void * parameter) {
       else{
         my_train.motor.go_back(my_train.train_speed);
       }
-
     } // of IF()
 
     // go to poling insteadof interrupts
@@ -80,13 +79,10 @@ void Task1code( void * parameter) {
     start_val = digitalRead(button_start_pin);
     stop_val = digitalRead(button_stop_pin);
     cng_val = digitalRead(button_cng_dir_pin);
-
-  
    
-    
     // Check START button value
     if (start_val==LOW) {
-      Serial.println("  in START_VAL ");
+      //Serial.println("  in START_VAL ");
       
       // START was pressed. if train was on the go, ignore. Otherwise - start the train
       if (my_train.motor.status == STOP) {
@@ -107,7 +103,7 @@ void Task1code( void * parameter) {
 
 
     if (cng_val==LOW) {
-      Serial.println("  in CNG_VAL ");
+      //Serial.println("  in CNG_VAL ");
       // CHANGE DIR  was pressed. 
       if (my_train.motor.status == STOP) {
         // Motor remains stop, just change direction
@@ -139,10 +135,8 @@ void Task1code( void * parameter) {
       wait_millis(100);
     } // outer if cng_val
 
-
-
     if (stop_val==LOW) {
-      Serial.print("  in STOP_VAL ");
+      //Serial.print("  in STOP_VAL ");
       // STOP was pressed.
       my_train.motor.stop();
       my_train.motor.status = STOP;
@@ -151,7 +145,7 @@ void Task1code( void * parameter) {
       wait_millis(100);
     } // outer if start_val
 
-     
+/*     
 if( start_val==LOW || stop_val==LOW || cng_val==LOW) {
     Serial.print("  A button was presed *****  Speed: ");
     Serial.print(my_train.train_speed);
@@ -166,9 +160,7 @@ if( start_val==LOW || stop_val==LOW || cng_val==LOW) {
     Serial.print("  Train Direction ");
     Serial.println(my_train.motor.dir);
   }
-
-
-    
+  */
     wait_millis(50);
   } // of for() loop
 } // of Task1code
@@ -256,19 +248,7 @@ void loop() {
   //Serial.println("   ");
   //Serial.print("  core:  ");
   //Serial.print(xPortGetCoreID());
-  
-  //my_train.speed_knob_val = my_train.manual_speed_knob.read_speed(); // keep reading speed from the knob
-  //my_train.update_speed();
-//  Serial.print("   my train read ptn val:  ");
-//  Serial.print(my_train.train_speed);
-  //Serial.print("     my train speed:  ");
- // Serial.print(my_train.train_speed);
- // Serial.print("  my train pin num:  ");
- // Serial.println(my_train.manual_speed_knob.potsmtr_pin);
-  
-  
- // return;
-  
+   
 
   if (start_pressed || stop_pressed || cng_pressed) {
     // Push buttpn event occured
@@ -280,11 +260,7 @@ void loop() {
     Serial.print(cng_pressed);
     Serial.println("   ");
     handle_buttons();
-    
   }
-
-  // make sure train runs on speed according to the knob
-
 
 
   /*
@@ -310,14 +286,11 @@ wait_millis(50);
 } // of LOOP()   ******************************************
 
 
-
-
-
 void handle_buttons() {
 
 
     if (start_pressed) {
-      Serial.print("   in START_pressed   ");
+      //Serial.print("   in START_pressed   ");
 
       start_pressed = false;
       // if we are already in movement, do nothing
@@ -329,7 +302,7 @@ void handle_buttons() {
         return;
       } // of inner if()
 
-      Serial.print("in START, was no-go");
+      //Serial.print("in START, was no-go");
       // At this stage, we got a valid go command
       my_train.start_button.pressed_num +=1;
       my_train.motor.status = GO;
@@ -351,7 +324,7 @@ void handle_buttons() {
   if (stop_pressed) {
     // no need to check if we are already in stop mode,,,, just stopping again..
     // TBD: moderated stop
-    Serial.print("    in STOP_PRESSED    ");
+    //Serial.print("    in STOP_PRESSED    ");
     stop_pressed = false;
     my_train.stop_button.pressed_num +=1;
         

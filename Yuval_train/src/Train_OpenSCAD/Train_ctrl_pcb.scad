@@ -18,7 +18,7 @@ module mk_holes() {
         cube([14+3,15,7+7]);
     // USB connector 
         translate([67,40,10+11.5])  color("cyan")
-        cube([15,10,5+5]);
+        cube([15,17,15]);
     
    
     

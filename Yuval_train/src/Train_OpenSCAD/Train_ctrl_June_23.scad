@@ -5,17 +5,30 @@ use <screw_holder.scad>
 
 box_x = 90;
 box_y = 90;
-box_h = 40; // working currently 40
+box_h = 40+20; // working currently 40
 box_width = 2;
 corner_x = 8;
 pcb_vec = [-34,-38,-20];
 
 header1 = "Train Control";
 
+// location of switches & leds
+led_h1 = 15;
+led_h2 = -5-3;
+led_cover_d=5+0.6;// was 11.8, before  12.5;
+sw_d = 6.8+0.6;
+sw1_vec =  [-30,led_h1,-5];
+sw2_vec =  [-5 ,led_h1,-5];
+sw3_vec =  [ 20,led_h1,-5];
+        
+led1_vec = [-30,led_h2,-5];
+led2_vec = [-5 ,led_h2,-5];
+led3_vec = [ 20,led_h2,-5];
+
 
 // 1: the box to print
 // 2: Cover
-// 3: trials
+// 3: Leds holder
 // 4: the box withthe internal
 //to_print = 2 ;
 //test();
@@ -25,7 +38,7 @@ header1 = "Train Control";
 
 
 
-print_box(_param=2);
+print_box(_param=1);
 text_vec=[-30,-10,0];
 
 
@@ -38,7 +51,9 @@ module print_box(_param) {
                 translate(pcb_vec) train_ctrl_pcb(); 
             } // of union()
             translate(pcb_vec) mk_holes();
-            //translate([-50,-70,10]) #cube([150,150,30]);
+            
+            // usb C hole: 14.7,5.2
+            translate([30,25,17]) cube([30,14.7,5.2]);
         } // of difference()
     } // of param=1
     
@@ -47,11 +62,9 @@ module print_box(_param) {
     } // pf param=2
 
     else if(_param==3) {
-        difference() {
-            box_to_print(_inner="false",ext_pins="false"); 
-            translate([-70,-43,-30]) cube([200,40,100]);
-            translate([-60,30,-0]) cube([120,10,50]);
-            } // of difference()    
+        // leds holder
+        led_sw_holder();
+  
     } // of if
     else if(_param==4) {
         box_to_print(_inner="true",ext_pins="false"); 
@@ -60,6 +73,67 @@ module print_box(_param) {
     
     
 } // of print_box();
+
+module led_sw_holder() {
+    h1=10;
+    delta = 1.5;
+    difference() {
+    union() {
+        cube([60,40,2],center=true);
+        translate([5,10,0]) cube([20,60,2],center=true);
+        translate([5,0,h1/2]) {
+            // switches
+            translate(sw1_vec) cylinder(d=sw_d+delta,h=h1,$fn=60);
+            translate(sw2_vec) cylinder(d=sw_d+delta,h=h1,$fn=60);
+            translate(sw3_vec) cylinder(d=sw_d+delta,h=h1,$fn=60);
+            translate([ 25-24, 35,-5]) cylinder(d=sw_d+delta,h=10,$fn=60);             
+            // leds
+            translate(led1_vec) cylinder(d=led_cover_d+delta,h=h1,$fn=60); // start
+            translate(led2_vec) cylinder(d=led_cover_d+delta,h=h1,$fn=60); // cng      
+            translate(led3_vec) cylinder(d=led_cover_d+delta,h=h1,$fn=60); // stop
+
+        } // of translate()
+    } // of union()
+    
+    
+        
+                // cut holes for push buttons
+        translate([5,0,h1/2]) {
+            //translate(sw1_vec) cylinder(d=sw_d,h=h1,$fn=60); // start
+            translate(sw1_vec) cylinder(d=sw_d,h=h1*3,$fn=60,center=true); // start
+            translate(sw2_vec) cylinder(d=sw_d,h=h1*3,$fn=60,center=true); // cng       
+            translate(sw3_vec) cylinder(d=sw_d,h=h1*3,$fn=60,center=true);  // stop
+            
+            // leds
+            translate(led1_vec) cylinder(d=led_cover_d,h=h1*3,$fn=60,center=true); // start
+            translate(led2_vec) cylinder(d=led_cover_d,h=h1*3,$fn=60,center=true); // cng      
+            translate(led3_vec) cylinder(d=led_cover_d,h=h1*3,$fn=60,center=true); // stop
+            
+            // potentiometer
+            translate([ 25-24, 35,-5]) cylinder(d=sw_d,h=10*3,$fn=60,center=true);             
+        } // of translate()
+
+    } // of difference()
+    
+   
+    
+    
+    
+    module cyl_holder(_delta) {
+        cylinder(d=sw_d+_delta,h=h1,$fn=60);
+        difference() {
+            cylinder(d=sw_d,h=h1,$fn=60);
+            cylinder(d=sw_d,h=3*h1,$fn=60,center=true);
+        } // of difference()
+    } // of cyl_holder
+    
+    
+    
+    
+    
+    
+    
+} // of leds_holder()
 
 module print_cover(_t="my text",_t_vec) {
     // print the cover            
@@ -162,8 +236,7 @@ module box(ext_pins="false") {
 
 
 module cover_to_print(_text="texttt",_t_vec) {
-    led_cover_d=5+0.6;// was 11.8, before  12.5;
-    sw_d = 6.8+0.6;
+ 
     cover_h = 2;
     header=_text;
     font = "Liberation Sans";
@@ -175,8 +248,7 @@ module cover_to_print(_text="texttt",_t_vec) {
     font_big = 9;
     font_small = 5;
     
-    led_h1 = 15;
-    led_h2 = -5-3;
+    
     
     
     difference() {
@@ -213,26 +285,18 @@ module cover_to_print(_text="texttt",_t_vec) {
                translate([0,0,0]) unicode_character(right_arrow, 15, font);
            } // of translate()
            
-           /*
-           color("green") translate([-30,-10,-10]) rotate([0,0,0])
-            unicode_character(left_arrow, 15, font);
-           color("green") translate([-30,-10,-10]) rotate([0,0,0])
-            unicode_character(right_arrow, 15, font);
-             */       
-                    
-                    
-            
-            //text("OpenSCAD");
         } // of union
+        
+        
         // cut holes for push buttons
-        translate([-30,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60); // start
-        translate([-5,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60); // cng       
-        translate([20,led_h1,-5]) cylinder(d=sw_d,h=10,$fn=60);  // stop
+        translate(sw1_vec) cylinder(d=sw_d,h=10,$fn=60); // start
+        translate(sw2_vec) cylinder(d=sw_d,h=10,$fn=60); // cng       
+        translate(sw3_vec) cylinder(d=sw_d,h=10,$fn=60);  // stop
         
         // leds
-        translate([-30,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // start
-        translate([-5,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // cng      
-        translate([ 20,led_h2,-5]) cylinder(d=led_cover_d,h=10,$fn=60); // stop
+        translate(led1_vec) cylinder(d=led_cover_d,h=10,$fn=60); // start
+        translate(led2_vec) cylinder(d=led_cover_d,h=10,$fn=60); // cng      
+        translate(led3_vec) cylinder(d=led_cover_d,h=10,$fn=60); // stop
         
         // potentiometer
         translate([ 25-24, 35,-5]) cylinder(d=sw_d,h=10,$fn=60);              
@@ -240,25 +304,14 @@ module cover_to_print(_text="texttt",_t_vec) {
 } // of cover_to_print()
 
 
-/* This code draws an arrow. */
-
-/* This code draws a Unicode character. */
 
 
-// Define the character.
+
 left_arrow = "\u2192"; // This is the Unicode character for a right arrow.
 right_arrow = "\u2190"; // This is the Unicode character for a right arrow.
-
-
-// Define the size.
 size = 50;
-
-// Define the font.
 font1 = "DejaVuSans";
-
-// Draw the character.
-//unicode_character(c2, size, font);
 
 module unicode_character(character, size, font) {
   text(character, size = size, font = font);
-}
+} // of unicode_character()
