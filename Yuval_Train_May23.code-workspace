@@ -6,6 +6,10 @@
 		{
 			"name": "Yuval_train",
 			"path": "Yuval_train"
+		},
+		{
+			"name": "Train_US_sensor",
+			"path": "Train_US_sensor"
 		}
 	],
 	"settings": {
