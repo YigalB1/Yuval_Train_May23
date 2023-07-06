@@ -21,6 +21,7 @@ void setup() {
   sensor_client_1.dist_sensor.echoPin = echo_pin;
   sensor_client_1.dist_sensor.init_US_sensor();
 
+/*
   sensor_client_1.Red_led.led_pin = red_led_pin;
   sensor_client_1.Red_led.init_led();
   sensor_client_1.Yellow_led.led_pin = yellow_led_pin;
@@ -31,15 +32,32 @@ void setup() {
   sensor_client_1.init_servo(servo_pin);
 
   sensor_client_1.test_leds();
+*/
+ pinMode(D4, INPUT);
 
   Serial.println("Finished Setup");
 } // of SETUP
 
+const int adc = A0;
 
 void loop() {
+  int value = analogRead(adc);
+  Serial.print("Value:  ");
+  Serial.println(value);
+  /*
+  int dust_density = value / 1024 * 50;
+  int distance = 100 / dust_density;
+  Serial.print("Value:  ");
+  Serial.print(value);
+  Serial.print("   dust_density:  ");
+  Serial.print(dust_density);
+  Serial.print("   distance:  ");  
+  Serial.println(distance);
+*/
+
  //sensor_client_1.test_us_sensor();
- sensor_client_1.test_servo();
- wait_millis(500);
+ //sensor_client_1.test_servo();
+ wait_millis(100);
   
 } // of LOOP
 
